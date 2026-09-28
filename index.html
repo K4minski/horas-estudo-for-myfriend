@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel de Horas de Estudo</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('horas-estudo-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f5f9;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--acc:#1e3a8a;--track:#e8ecf3}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131c2e;--ink:#e6ebf5;--mut:#8b9ab3;--line:#22304a;--acc:#93b4ff;--track:#1c2840}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131c2e;--ink:#e6ebf5;--mut:#8b9ab3;--line:#22304a;--acc:#93b4ff;--track:#1c2840}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:20px;border-bottom:2px solid var(--acc);padding-bottom:14px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.mut{color:var(--mut);font-size:13px}
+.tot{text-align:right}.tot b{font-size:22px;font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 14px;font-weight:600}
+.area{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:background .15s}
+.area:hover{background:rgba(100,116,139,.06)}
+.area.sel{background:rgba(100,116,139,.08);box-shadow:0 0 0 1px var(--c)}
+.top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.nm{font-weight:600;font-size:16px}
+.lvl{font-size:11px;padding:2px 8px;border-radius:999px;color:#fff;font-weight:600}
+.time{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:17px}
+.time small{color:var(--mut);font-weight:500}
+.bar{height:10px;background:var(--track);border-radius:99px;margin:10px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.note{font-size:12px;color:var(--mut)}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:8px;animation:p 1.2s infinite}
+@keyframes p{50%{opacity:.25}}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);align-items:center;cursor:default}
+button{font:inherit;font-size:13px;font-weight:600;border-radius:6px;padding:7px 14px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.pri{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+button:disabled{opacity:.4;cursor:default}
+.ctl input[type=text]{flex:1;min-width:120px;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=color]{width:34px;height:30px;padding:2px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.danger{color:#dc2626}
+.add{width:100%;border-style:dashed;padding:10px}
+svg{width:100%;height:auto;display:block}
+.tx{fill:var(--mut);font-size:13px}.gr{stroke:var(--line)}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.pie{display:flex;gap:28px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pie svg{width:220px}
+.pl{min-width:220px}
+.pl div{display:flex;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.pl i{width:10px;height:10px;border-radius:2px}
+.pl b{margin-left:auto;padding-left:16px;font-variant-numeric:tabular-nums}
+:root[data-theme="dark"]{color-scheme:dark}
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#sp .ctl{margin:0;padding:0;border:0}
+button:focus-visible,input:focus-visible{outline:2px solid #3b82f6;outline-offset:2px}
+.cn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.cn b{font-size:16px}
+.cn button{padding:5px 12px}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cw{font-size:12px;color:var(--mut);text-align:center;padding-bottom:2px}
+.cd{min-height:48px;padding:4px 6px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;border-radius:6px;font-weight:500;background:var(--track);color:var(--ink)}
+.cd span{font-size:12px}
+.cd small{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.l0{background:var(--track)}
+.l1{background:rgba(37,99,235,.25)}
+.l2{background:rgba(37,99,235,.5)}
+.l3{background:rgba(37,99,235,.78);color:#fff}
+.l4{background:#1d4ed8;color:#fff}
+.cd.hoje{border-color:var(--ink)}
+.cd.on{box-shadow:0 0 0 2px #3b82f6}
+.cl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-top:12px;flex-wrap:wrap}
+.cl i{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.cdet{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.cdet .pl{margin-top:8px}
+.empty{color:var(--mut);font-size:14px;padding:12px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Painel de Horas de Estudo</h1>
+    <div class="mut">Progressão contínua · novo nível a cada 50 h por área</div>
+    <div class="tools"><button id="thm">☀ Modo claro</button><button id="spb">♫ Spotify</button></div>
+  </div>
+  <div class="tot"><div class="mut" id="clock">Brasília</div><div class="mut" style="margin-top:8px">Total acumulado</div><b id="total">0d 00h 00m</b></div>
+</header>
+
+<section class="card" id="sp" hidden>
+  <h2>Spotify</h2>
+  <div class="ctl"><input type="text" id="spu" placeholder="Cole o link de uma playlist, álbum ou faixa" aria-label="Link do Spotify"><button class="pri" id="spgo">Conectar</button><button id="spx">Remover</button></div>
+  <div id="spf"></div>
+  <div class="note" id="spm" style="margin-top:8px">O player toca aqui mesmo, sem interromper o cronômetro. Para ouvir as músicas completas, entre na sua conta Spotify neste navegador.</div>
+</section>
+
+<section class="card">
+  <h2>Áreas de estudo</h2>
+  <div class="mut" style="margin:-6px 0 12px">Clique em uma área para cronometrar ou editar.</div>
+  <div id="list"></div>
+  <button class="add" id="add">+ Nova área</button>
+</section>
+
+<section class="card">
+  <h2>Evolução acumulada (horas)</h2>
+  <div id="line"></div>
+  <div class="leg" id="leg"></div>
+</section>
+
+<section class="card">
+  <h2>Distribuição do estudo</h2>
+  <div id="pie"></div>
+</section>
+
+<section class="card">
+  <h2>Calendário de estudo</h2>
+  <div id="cal"></div>
+</section>
+</div>
+
+<script>
+const KEY='horas-estudo-v1';
+const PAL=['#2563eb','#dc2626','#059669','#d97706','#7c3aed','#0891b2','#db2777','#65a30d'];
+const TIERS=[['Base','#64748b'],['Iniciante','#0ea5e9'],['Praticante','#14b8a6'],['Avançado','#22c55e'],['Especialista','#eab308'],['Mestre','#f97316'],['Elite','#ef4444'],['Lendário','#a855f7']];
+const STEP=50*3600;
+let S=null,tk=0;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.areas){S={areas:[{id:'a1',name:'CyberSec',color:PAL[0]},{id:'a2',name:'Concurso Perito',color:PAL[1]},{id:'a3',name:'Vendas',color:PAL[2]}],log:{},sel:null}}
+S.run=null;S.last=0;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const tot=()=>{const t={};for(const d in S.log)for(const id in S.log[d])t[id]=(t[id]||0)+S.log[d][id];return t};
+const p2=n=>String(n).padStart(2,'0');
+const fmt=(s,sec)=>{s=Math.floor(s);return Math.floor(s/86400)+'d '+p2(Math.floor(s%86400/3600))+'h '+p2(Math.floor(s%3600/60))+'m'+(sec?' <small>:'+p2(s%60)+'</small>':'')};
+
+function head(a,t){
+  const s=t[a.id]||0,lv=Math.floor(s/STEP),p=(s%STEP)/STEP,T=TIERS[Math.min(lv,TIERS.length-1)],c=T[1];
+  return `<div class="top"><span class="nm">${S.run===a.id?'<span class="live"></span>':''}${esc(a.name)}</span><span class="lvl" style="background:${c}">Nível ${lv} · ${T[0]}</span><span class="time">${fmt(s,S.run===a.id)}</span></div><div class="bar"><i style="width:${(p*100).toFixed(1)}%;background:${c};box-shadow:0 0 10px ${c}88"></i></div><div class="note">${((STEP-s%STEP)/3600).toFixed(1)} h para o próximo nível</div>`;
+}
+function paint(){
+  const t=tot();
+  document.querySelectorAll('.area').forEach(el=>{const a=S.areas.find(x=>x.id===el.dataset.id);if(a)el.querySelector('.hd').innerHTML=head(a,t)});
+  $('#total').innerHTML=fmt(Object.values(t).reduce((x,y)=>x+y,0));
+}
+function btns(){
+  const st=$('[data-act=start]'),pa=$('[data-act=pause]');
+  if(st){st.disabled=S.run===S.sel;pa.disabled=S.run!==S.sel}
+}
+function render(){
+  const t=tot();
+  $('#list').innerHTML=S.areas.map(a=>{const sel=S.sel===a.id;
+    return `<div class="area${sel?' sel':''}" data-id="${a.id}" style="--c:${a.color}"><div class="hd">${head(a,t)}</div>${sel?`<div class="ctl"><button class="pri" data-act="start">▶ Iniciar</button><button data-act="pause">⏸ Pausar</button><input type="text" value="${esc(a.name)}" data-act="name" maxlength="30" aria-label="Nome da área"><input type="color" value="${a.color}" data-act="color" aria-label="Cor da área"><button class="danger" data-act="del">Excluir</button></div>`:''}</div>`}).join('');
+  btns();paint();charts();
+}
+
+$('#list').addEventListener('click',e=>{
+  const el=e.target.closest('.area');if(!el)return;
+  const id=el.dataset.id,b=e.target.closest('button[data-act]');
+  if(!e.target.closest('.ctl')){if(S.sel!==id){S.sel=id;save();render()}return}
+  if(!b)return;
+  const act=b.dataset.act;
+  if(act==='start'){if(S.run!==id){S.run=id;S.last=Date.now()}render()}
+  else if(act==='pause'){S.run=null;render()}
+  else if(act==='del'){
+    if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Confirmar exclusão';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='Excluir'}},3000);return}
+    S.areas=S.areas.filter(a=>a.id!==id);for(const k in S.log)delete S.log[k][id];
+    if(S.run===id)S.run=null;S.sel=null;save();render();
+  }
+});
+$('#list').addEventListener('input',e=>{
+  const act=e.target.dataset.act,el=e.target.closest('.area');if(!el)return;
+  const a=S.areas.find(x=>x.id===el.dataset.id);
+  if(act==='name')a.name=e.target.value||'Sem nome';
+  else if(act==='color'){a.color=e.target.value;el.style.setProperty('--c',a.color)}
+  else return;
+  save();paint();charts();
+});
+$('#add').onclick=()=>{const id='a'+Date.now();S.areas.push({id,name:'Nova área',color:PAL[S.areas.length%PAL.length]});S.sel=id;save();render()};
+
+setInterval(()=>{
+  if(!S.run)return;
+  const n=Date.now(),d=Math.min((n-S.last)/1000,120),k=dk(new Date());
+  S.last=n;(S.log[k]=S.log[k]||{})[S.run]=(S.log[k][S.run]||0)+d;
+  save();paint();if(++tk%10===0)charts();
+},1000);
+
+function charts(){
+  const t=tot(),A=S.areas;
+  // ---- linha (acumulado por dia)
+  const keys=Object.keys(S.log).sort(),now=new Date();now.setHours(12);
+  let start=new Date(now);start.setDate(start.getDate()-6);
+  if(keys.length){const f=new Date(keys[0]+'T12:00:00');if(f<start)start=f}
+  const lim=new Date(now);lim.setDate(lim.getDate()-29);if(start<lim)start=lim;
+  const days=[];for(let d=new Date(start);d<=now;d.setDate(d.getDate()+1))days.push(dk(d));
+  const ser=A.map(a=>{let c=0;for(const k in S.log)if(k<days[0])c+=S.log[k][a.id]||0;
+    return{a,v:days.map(k=>(c+=(S.log[k]||{})[a.id]||0)/3600)}});
+  const mx=Math.max(1,...ser.flatMap(s=>s.v));
+  const st=[1,2,5,10,20,25,50,100,200,500,1000,2000].find(x=>x*4>=mx)||Math.ceil(mx/4),top=st*4;
+  const W=720,H=290,L=46,R=14,T=14,B=32,n=days.length;
+  const X=i=>L+(W-L-R)*i/(n-1||1),Y=v=>T+(H-T-B)*(1-v/top);
+  let g='';
+  for(let i=0;i<=4;i++){const y=Y(i*st);g+=`<line class="gr" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="tx" x="${L-8}" y="${y+4}" text-anchor="end">${i*st}h</text>`}
+  const every=Math.ceil(n/7);
+  days.forEach((k,i)=>{if(i%every===0||i===n-1)g+=`<text class="tx" x="${X(i)}" y="${H-8}" text-anchor="middle">${k.slice(8)}/${k.slice(5,7)}</text>`});
+  ser.forEach(s=>{if(s.v[n-1]<=0)return;
+    g+=`<path d="${s.v.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('')}" fill="none" stroke="${s.a.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(n-1)}" cy="${Y(s.v[n-1])}" r="4" fill="${s.a.color}"/>`});
+  $('#line').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Horas acumuladas por área ao longo do tempo">${g}</svg>`;
+  $('#leg').innerHTML=A.map(a=>`<span><i style="background:${a.color}"></i>${esc(a.name)}</span>`).join('');
+  // ---- pizza
+  const ents=A.filter(a=>(t[a.id]||0)>0).map(a=>[a,t[a.id]]),sum=ents.reduce((x,e)=>x+e[1],0);
+  if(!sum){$('#pie').innerHTML='<div class="empty">Inicie um cronômetro para ver a distribuição por área.</div>';return}
+  const C=2*Math.PI*70;let acc=0;
+  const arcs=ents.map(([a,s])=>{const f=s/sum,o=`<circle cx="100" cy="100" r="70" fill="none" stroke="${a.color}" stroke-width="30" stroke-dasharray="${f*C} ${C}" stroke-dashoffset="${-acc*C}" transform="rotate(-90 100 100)"/>`;acc+=f;return o}).join('');
+  const pc=f=>f*100<1?'<1%':Math.round(f*100)+'%';
+  $('#pie').innerHTML=`<div class="pie"><svg viewBox="0 0 200 200" role="img" aria-label="Percentual de estudo por área">${arcs}<text x="100" y="98" text-anchor="middle" style="font-size:22px;font-weight:700;fill:var(--ink)">${(sum/3600).toFixed(1)}h</text><text class="tx" x="100" y="118" text-anchor="middle">total</text></svg><div class="pl">${ents.map(([a,s])=>`<div><i style="background:${a.color}"></i>${esc(a.name)}<b>${pc(s/sum)}</b></div>`).join('')}</div></div>`;
+}
+// ---- calendário (mapa de calor por dia)
+const t0=new Date();let cm={y:t0.getFullYear(),m:t0.getMonth()},cs=dk(t0);
+const dsum=k=>Object.values(S.log[k]||{}).reduce((x,y)=>x+y,0);
+const hh=s=>Math.floor(s/3600)+'h'+p2(Math.floor(s%3600/60));
+const hl=s=>Math.floor(s/3600)+'h '+p2(Math.floor(s%3600/60))+'min';
+const lvl=s=>s<=0?0:s<3600?1:s<9000?2:s<14400?3:4;
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function cal(){
+  const {y,m}=cm,first=new Date(y,m,1),nd=new Date(y,m+1,0).getDate(),hoje=dk(new Date());
+  let cells='',mt=0;
+  ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(w=>cells+=`<div class="cw">${w}</div>`);
+  for(let i=0;i<first.getDay();i++)cells+='<i></i>';
+  for(let d=1;d<=nd;d++){
+    const k=y+'-'+p2(m+1)+'-'+p2(d),s=dsum(k);mt+=s;
+    cells+=`<button class="cd l${lvl(s)}${k===hoje?' hoje':''}${k===cs?' on':''}" data-d="${k}" aria-label="${d}: ${hh(s)} de estudo"><span>${d}</span><small>${s>0?hh(s):''}</small></button>`;
+  }
+  const [yy,mm,dd]=cs.split('-').map(Number);
+  const dl=cap(new Date(yy,mm-1,dd).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+  const rows=S.areas.map(a=>[a,(S.log[cs]||{})[a.id]||0]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
+  $('#cal').innerHTML=`<div class="cn"><button data-nav="-1" aria-label="Mês anterior">‹</button><div style="text-align:center"><b>${cap(first.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}))}</b><div class="note">Total do mês: ${hl(mt)}</div></div><div style="display:flex;gap:6px"><button data-nav="0">Hoje</button><button data-nav="1" aria-label="Próximo mês">›</button></div></div>
+<div class="cg">${cells}</div>
+<div class="cl">Menos <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i> Mais <span>· até 1 h, 2h30, 4 h e acima de 4 h</span></div>
+<div class="cdet"><b>${dl}</b> · ${hl(dsum(cs))}${rows.length?`<div class="pl">${rows.map(([a,s])=>`<div><i style="background:${a.color}"></i>${esc(a.name)}<b>${hl(s)}</b></div>`).join('')}</div>`:'<div class="empty" style="text-align:left;padding-bottom:0">Nenhum estudo registrado neste dia.</div>'}</div>`;
+}
+$('#cal').addEventListener('click',e=>{
+  const n=e.target.closest('[data-nav]'),d=e.target.closest('[data-d]');
+  if(n){const v=+n.dataset.nav;
+    if(v===0){const t=new Date();cm={y:t.getFullYear(),m:t.getMonth()};cs=dk(t)}
+    else{const t=new Date(cm.y,cm.m+v,1);cm={y:t.getFullYear(),m:t.getMonth()}}
+    cal();
+  }else if(d){cs=d.dataset.d;cal()}
+});
+
+// ---- tema (escuro é o padrão)
+const root=document.documentElement;
+function setTheme(t){root.dataset.theme=t;try{localStorage.setItem('horas-estudo-theme',t)}catch(e){}$('#thm').textContent=t==='dark'?'☀ Modo claro':'☾ Modo escuro'}
+$('#thm').onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
+setTheme(root.dataset.theme==='light'?'light':'dark');
+
+// ---- relógio (horário de Brasília)
+const fDia=new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',weekday:'short',day:'numeric',month:'short'});
+const fHora=new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const clk=()=>{const n=new Date();$('#clock').textContent='Brasília · '+fDia.format(n)+' · '+fHora.format(n)};
+clk();setInterval(clk,1000);
+
+// ---- Spotify (player incorporado, sem login no site)
+const OK=/^https:\/\/open\.spotify\.com\/embed\/(playlist|album|track|artist|show|episode)\/[A-Za-z0-9]+$/;
+const toEmbed=u=>{const m=String(u).match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|artist|show|episode)\/([A-Za-z0-9]+)/);return m?'https://open.spotify.com/embed/'+m[1]+'/'+m[2]:null};
+function spot(){
+  const u=S.spotify;
+  $('#spf').innerHTML=u&&OK.test(u)?`<iframe src="${u}" width="100%" height="152" style="border:0;border-radius:12px;margin-top:12px" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Player do Spotify"></iframe>`:'';
+}
+$('#spb').onclick=()=>{$('#sp').hidden=!$('#sp').hidden};
+$('#spgo').onclick=()=>{
+  const e=toEmbed($('#spu').value);
+  if(!e){$('#spm').textContent='Link inválido. Copie um link de open.spotify.com (playlist, álbum ou faixa) e cole aqui.';return}
+  S.spotify=e;save();spot();
+  $('#spm').textContent='Conectado. Use os controles do player abaixo.';
+};
+$('#spx').onclick=()=>{S.spotify=null;$('#spu').value='';save();spot()};
+spot();if(S.spotify&&OK.test(S.spotify))$('#sp').hidden=false;
+
+render();
+</script>
+</body>
+</html>
